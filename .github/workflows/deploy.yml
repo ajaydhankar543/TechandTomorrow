@@ -7,16 +7,15 @@ on:
     branches: [main]
 
 jobs:
-  # ── CI: Test & Build ──────────────────────────
   build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
 
@@ -35,7 +34,6 @@ jobs:
           cd Frontend
           npm run build
 
-  # ── CD: Deploy to Server ──────────────────────
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -43,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -52,9 +50,13 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/TechandTomorrow
+            # Install Node 22 if not already on server
+            node --version | grep -q "v22" || (
+              curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            )
 
-            # Pull latest code
+            cd ~/TechandTomorrow
             git pull origin main
 
             # Backend
@@ -67,4 +69,4 @@ jobs:
             npm install
             npm run build
 
-            echo "✅ Deployment complete!"
+            echo "✅ Deployed with Node $(node --version)"
