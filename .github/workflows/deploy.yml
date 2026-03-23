@@ -1,48 +1,38 @@
 name: CI/CD Pipeline
-
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-
+          node-version: '20'
       - name: Install Backend dependencies
         run: |
           cd Backend
           npm install
-
       - name: Install Frontend dependencies
         run: |
           cd Frontend
           npm install
-
       - name: Build Frontend
         run: |
           cd Frontend
           npm run build
-
   deploy:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -50,23 +40,16 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Install Node 22 if not already on server
-            node --version | grep -q "v22" || (
-              curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+            node --version | grep -q "v20" || (
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
               sudo apt-get install -y nodejs
             )
-
             cd ~/TechandTomorrow
             git pull origin main
-
-            # Backend
             cd Backend
             npm install --production
             pm2 restart backend || pm2 start server.js --name backend
-
-            # Frontend
             cd ../Frontend
             npm install
             npm run build
-
             echo "✅ Deployed with Node $(node --version)"
