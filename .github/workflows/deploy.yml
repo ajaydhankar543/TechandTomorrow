@@ -15,7 +15,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm' # Speeds up future builds
+          # Tell GitHub where to find the lock files
+          cache: 'npm'
+          cache-dependency-path: |
+            Backend/package-lock.json
+            Frontend/package-lock.json
 
       # 1. HEAVY LIFTING ON GITHUB
       - name: Build Backend & Frontend
