@@ -7,58 +7,45 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          node-version: '20'
-          # Tell GitHub where to find the lock files
-          cache: 'npm'
-          cache-dependency-path: |
-            Backend/package-lock.json
-            Frontend/package-lock.json
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 1. HEAVY LIFTING ON GITHUB
-      - name: Build Backend & Frontend
-        run: |
-          cd Backend && npm install
-          cd ../Frontend && npm install && npm run build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      # 2. COPY FILES TO SERVER (using rsync)
-      - name: Deploy to Server via SSH
-        uses: appleboy/scp-action@v0.1.7
+      - name: Build & Push Backend
+        uses: docker/build-push-action@v5
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # We send the Backend folder and the Frontend/dist folder
-          source: "Backend/**,Frontend/dist/**"
-          target: "~/TechandTomorrow_temp"
+          context: ./Backend
+          push: true
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/techandtomorrow-backend:latest
 
-      # 3. FINALIZE ON SERVER (Restart PM2 & Nginx)
-      - name: Post-deployment Server Commands
+      - name: Build & Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Frontend
+          push: true
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/techandtomorrow-frontend:latest
+
+      - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Move files from temp to final location
-            rsync -avz ~/TechandTomorrow_temp/ ~/TechandTomorrow/
-            rm -rf ~/TechandTomorrow_temp
-
-            # Backend: Only install production dependencies (fast)
-            cd ~/TechandTomorrow/Backend
-            npm install --production
-            pm2 restart backend || pm2 start server.js --name backend
-
-            # Frontend: Move built files to Nginx web root
-            sudo mkdir -p /var/www/techandtomorrow
-            sudo cp -r ~/TechandTomorrow/Frontend/dist/* /var/www/techandtomorrow/
-            
-            # Restart Nginx to ensure it's fresh
-            sudo systemctl restart nginx
+            cd ~/TechandTomorrow
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
             echo "✅ Deployment Successful"
