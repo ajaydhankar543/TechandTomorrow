@@ -45,7 +45,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ~/TechandTomorrow
-            docker compose pull
-            docker compose up -d
+            git pull origin main
+            docker-compose pull
+            docker-compose up -d
             docker image prune -f
             echo "✅ Deployment Successful"
