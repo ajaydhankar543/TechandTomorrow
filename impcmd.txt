@@ -1,0 +1,9 @@
+# Clean up leftover packages
+sudo apt autoremove -y
+sudo apt autoclean
+
+
+
+
+# Clear PageCache, dentries and inodes
+sudo sh -c "sync && echo 3 > /proc/sys/vm/drop_caches"

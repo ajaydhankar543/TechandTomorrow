@@ -1,0 +1,16 @@
+services:
+  backend:
+    image: abhaypratapsingh7704866570/techandtomorrow-backend:latest
+    container_name: backend
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./Backend/.env
+
+  frontend:
+    image: abhaypratapsingh7704866570/techandtomorrow-frontend:latest
+    container_name: frontend
+    restart: always
+    ports:
+      - "8080:80"
