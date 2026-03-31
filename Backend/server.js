@@ -3,6 +3,9 @@ const app = express()
 import dotenv from 'dotenv'
 dotenv.config()
 const port = process.env.PORT || process.env.port || 3000
+import dummydata from './api/data'
+
+
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -10,6 +13,10 @@ app.get('/', (req, res) => {
 
 app.get('/api', (req, res) => {
   res.json({ message: 'API working!' })
+})
+
+app.get('/api/data', (req, res) => {
+  res.json(dummydata)
 })
 
 app.listen(port, () => {
