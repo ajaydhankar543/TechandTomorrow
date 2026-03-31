@@ -3,7 +3,7 @@ const app = express()
 import dotenv from 'dotenv'
 dotenv.config()
 const port = process.env.PORT || process.env.port || 3000
-import dummydata from './api/data'
+import dummydata from './api/data.js'
 
 
 
