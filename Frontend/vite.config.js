@@ -1,9 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
-  plugins: [react()],
+// vite.config.js
+export default {
   server: {
-    allowedHosts: ['techandtomorrow.social'],
-  },
-})
+    hmr: {
+      host: 'techandtomorrow.social',
+      protocol: 'wss', // Use 'ws' if not using SSL/HTTPS
+    },
+    allowedHosts: ['techandtomorrow.social'] 
+  }
+}

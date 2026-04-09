@@ -2,20 +2,23 @@ import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import dummydata from './api/data.js'
+import connectDB from './api/config/db.js'
+import router from './api/routes/userRoutes.js'  // ✅ clean default import
 
 dotenv.config()
+connectDB()
 
 const app = express()
-const port = process.env.PORT || process.env.port || 3000
-
-app.use(cors())
+const port = process.env.PORT || 5000
 
 app.use(cors({
-  origin: 'techandtomorrow.social'
-}));
+  origin: ['https://techandtomorrow.social', 'http://localhost:5173']
+}))
+app.use(express.json())
+
+app.use('/api/users', router)  // ✅ use ES module import, not require()
 
 
-app.use(express.json()) // good to have
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -26,7 +29,7 @@ app.get('/api', (req, res) => {
 })
 
 app.get('/api/data', (req, res) => {
-  res.json(dummydata)  // ✅ just serve the data directly
+  res.json(dummydata)
 })
 
 app.listen(port, () => {
