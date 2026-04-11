@@ -1,4 +1,3 @@
-'use client'
 import { useState, useEffect } from 'react'
 // import express from 'express'
 // const app = express()
@@ -8,7 +7,7 @@ export default function Dummydata() {
   const [data, setData] = useState([])
 
   useEffect(() => {
-    fetch('/api/data')
+    fetch('http://localhost:3000/api/data')
       .then(res => res.json())
       .then(setData)
       .catch(console.error)
